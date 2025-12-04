@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import mg.framework.model.ModelView;
 
 
 @WebServlet(name = "FrontServlet", urlPatterns = {"/"}, loadOnStartup = 1)
@@ -44,9 +45,48 @@ public class FrontServlet extends HttpServlet {
         String contextPath = request.getContextPath();       
         String resourcePath = requestURI.substring(contextPath.length());
 
+        // First, check if there's a handler for this path (including "/")
+        if (registry != null) {
+            java.util.List<mg.framework.registry.HandlerMethod> handlers = registry.findMatching(resourcePath);
+            if (handlers != null && !handlers.isEmpty()) {
+                for (mg.framework.registry.HandlerMethod h : handlers) {
+                    try {
+                        Object controllerInstance = h.getControllerClass().getDeclaredConstructor().newInstance();
+                        Object result = h.getMethod().invoke(controllerInstance);
+                        if (result instanceof String) {
+                            response.getWriter().println((String) result);
+                        } else if (result instanceof ModelView) {
+                            ModelView mv = (ModelView) result;
+                            RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/" + mv.getView());
+                            if (dispatcher != null) {
+                                for (java.util.Map.Entry<String, Object> entry : mv.getAttributes().entrySet()) {
+                                    request.setAttribute(entry.getKey(), entry.getValue());
+                                }
+                                dispatcher.forward(request, response);
+                            } else {
+                                response.getWriter().println("View not found: " + mv.getView());
+                            }
+                        } else {
+                            response.getWriter().println("Unsupported return type: " + result.getClass().getName());
+                        }
+                    } catch (Exception e) {
+                        response.getWriter().println("Error invoking method: " + e.getMessage());
+                    }
+                }
+                return;
+            }
+        }
+
         try {
             java.net.URL resource = getServletContext().getResource(resourcePath);
             if (resource != null) {
+                if (resourcePath.endsWith(".jsp")) {
+                    RequestDispatcher jspDispatcher = getServletContext().getRequestDispatcher(resourcePath);
+                    if (jspDispatcher != null) {
+                        jspDispatcher.forward(request, response);
+                        return;
+                    }
+                }
                 RequestDispatcher defaultServlet = getServletContext().getNamedDispatcher("default");
                 if (defaultServlet != null) {
                     defaultServlet.forward(request, response);
@@ -55,16 +95,6 @@ public class FrontServlet extends HttpServlet {
             }
         } catch (Exception e) {
             throw new ServletException("Erreur lors de la vérification de la ressource: " + resourcePath, e);
-        }
-
-        if (registry != null) {
-            java.util.List<mg.framework.registry.HandlerMethod> handlers = registry.findExact(resourcePath);
-            if (handlers != null && !handlers.isEmpty()) {
-                for (mg.framework.registry.HandlerMethod h : handlers) {
-                    response.getWriter().println(h.getControllerClass().getName() + "#" + h.getMethod().getName());
-                }
-                return;
-            }
         }
 
         response.getWriter().println("Ressource non trouvée: " + resourcePath);
