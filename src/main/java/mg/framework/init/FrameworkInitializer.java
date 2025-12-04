@@ -28,7 +28,7 @@ public class FrameworkInitializer implements ServletContextListener {
                     ctx.log("  " + path + " -> (no handlers)");
                 } else {
                     for (mg.framework.registry.HandlerMethod h : list) {
-                        String line = String.format("  %s -> %s#%s", path, h.getControllerClass().getName(), h.getMethod().getName());
+                        String line = String.format("  %s -> %s#%s -> %s", path, h.getControllerClass().getName(), h.getMethod().getName(), h.getReturnType().getSimpleName());
                         ctx.log(line);
                     }
                 }

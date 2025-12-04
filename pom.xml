@@ -27,13 +27,13 @@
             <version>5.0.0</version>
             <scope>provided</scope>
         </dependency>
-        <!-- Reflections pour scan du classpath (utilisé par le framework) -->
+        <!-- Reflections pour scan du classpath -->
         <dependency>
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <version>0.10.2</version>
         </dependency>
-        <!-- SLF4J simple pour logs légers -->
+        <!-- SLF4J Simple pour éviter les warnings Reflections -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
