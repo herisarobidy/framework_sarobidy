@@ -71,6 +71,9 @@ public class FrontServlet extends HttpServlet {
                             ModelView mv = (ModelView) result;
                             RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/" + mv.getView());
                             if (dispatcher != null) {
+                                for (java.util.Map.Entry<String, Object> entry : mv.getAttributes().entrySet()) {
+                                    request.setAttribute(entry.getKey(), entry.getValue());
+                                }
                                 dispatcher.forward(request, response);
                             } else {
                                 response.getWriter().println("View not found: " + mv.getView());
