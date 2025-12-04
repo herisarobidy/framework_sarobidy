@@ -27,18 +27,6 @@
             <version>5.0.0</version>
             <scope>provided</scope>
         </dependency>
-        <!-- Reflections pour scan du classpath -->
-        <dependency>
-            <groupId>org.reflections</groupId>
-            <artifactId>reflections</artifactId>
-            <version>0.10.2</version>
-        </dependency>
-        <!-- SLF4J Simple pour éviter les warnings Reflections -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>1.7.32</version>
-        </dependency>
     </dependencies>
 
     <build>
