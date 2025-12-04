@@ -58,15 +58,14 @@ public class FrontServlet extends HttpServlet {
                         Object controllerInstance = h.getControllerClass().getDeclaredConstructor().newInstance();
                         String handlerPath = h.getPath();
                         Object[] args = new Object[0];
-                        java.lang.reflect.Parameter[] params = h.getMethod().getParameters();
                         if (handlerPath.contains("{")) {
                             List<String> vars = extractVarNames(handlerPath);
                             Pattern compiled = registry.getCompiledPattern(handlerPath);
                             if (compiled != null) {
                                 Matcher matcher = compiled.matcher(resourcePath);
-                                args = new Object[params.length];
-
                                 if (matcher.matches()) {
+                                    java.lang.reflect.Parameter[] params = h.getMethod().getParameters();
+                                    args = new Object[params.length];
                                     for (int i = 0; i < params.length; i++) {
                                         String paramName = params[i].getName();
                                         int varIndex = vars.indexOf(paramName);
@@ -85,30 +84,19 @@ public class FrontServlet extends HttpServlet {
                                                     String value = request.getParameter(reqParamName);
                                                     if (value != null) {
                                                         args[i] = convertValue(value, params[i].getType());
-                                                    } else if (params[i].getType().isPrimitive()) {
-                                                        args[i] = getDefaultValue(params[i].getType());
+                                                    } else {
+                                                        if (params[i].getType().isPrimitive()) {
+                                                            args[i] = getDefaultValue(params[i].getType());
+                                                        }
                                                     }
                                                 }
-                                            } else if (params[i].getType().isPrimitive()) {
-                                                args[i] = getDefaultValue(params[i].getType());
+                                            } else {
+                                                if (params[i].getType().isPrimitive()) {
+                                                    args[i] = getDefaultValue(params[i].getType());
+                                                }
                                             }
                                         }
                                     }
-                                } 
-                            }
-                        } else {
-                            args = new Object[params.length];
-                            for (int i = 0; i < params.length; i++) {
-                                String sourceName = params[i].getName();
-                                RequestParam requestParam = params[i].getAnnotation(RequestParam.class);
-                                if (requestParam != null && !requestParam.value().isEmpty()) {
-                                    sourceName = requestParam.value();
-                                }
-                                String value = request.getParameter(sourceName);
-                                if (value != null) {
-                                    args[i] = convertValue(value, params[i].getType());
-                                } else if (params[i].getType().isPrimitive()) {
-                                    args[i] = getDefaultValue(params[i].getType());
                                 }
                             }
                         }
