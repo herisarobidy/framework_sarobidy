@@ -17,19 +17,23 @@ public class FrameworkInitializer implements ServletContextListener {
         ControllerRegistry registry = new ControllerRegistry();
         ClasspathScanner.scanAndRegister("", registry);
         ctx.setAttribute(REGISTRY_ATTR, registry);
-    java.util.Map<String, java.util.List<mg.framework.registry.HandlerMethod>> snap = registry.getExactRoutesSnapshot();
-    ctx.log("FrameworkInitializer: registered ControllerRegistry with " + snap.size() + " exact routes");
+        java.util.Map<String, java.util.Map<String, java.util.List<mg.framework.registry.HandlerMethod>>> snap = registry.getExactRoutesSnapshot();
+        ctx.log("FrameworkInitializer: registered ControllerRegistry with " + snap.size() + " exact route paths");
         try {
-            ctx.log("FrameworkInitializer: route listings (path -> controller#method):");
-            for (java.util.Map.Entry<String, java.util.List<mg.framework.registry.HandlerMethod>> e : snap.entrySet()) {
+            ctx.log("FrameworkInitializer: route listings (path -> method -> controller#method):");
+            for (java.util.Map.Entry<String, java.util.Map<String, java.util.List<mg.framework.registry.HandlerMethod>>> e : snap.entrySet()) {
                 String path = e.getKey();
-                java.util.List<mg.framework.registry.HandlerMethod> list = e.getValue();
-                if (list.isEmpty()) {
-                    ctx.log("  " + path + " -> (no handlers)");
+                java.util.Map<String, java.util.List<mg.framework.registry.HandlerMethod>> inner = e.getValue();
+                if (inner.isEmpty()) {
+                    ctx.log("  " + path + " -> (no methods)");
                 } else {
-                    for (mg.framework.registry.HandlerMethod h : list) {
-                        String line = String.format("  %s -> %s#%s -> %s", path, h.getControllerClass().getName(), h.getMethod().getName(), h.getReturnType().getSimpleName());
-                        ctx.log(line);
+                    for (java.util.Map.Entry<String, java.util.List<mg.framework.registry.HandlerMethod>> innerE : inner.entrySet()) {
+                        String method = innerE.getKey();
+                        java.util.List<mg.framework.registry.HandlerMethod> list = innerE.getValue();
+                        for (mg.framework.registry.HandlerMethod h : list) {
+                            String line = String.format("  %s [%s] -> %s#%s -> %s", path, method, h.getControllerClass().getName(), h.getMethod().getName(), h.getReturnType().getSimpleName());
+                            ctx.log(line);
+                        }
                     }
                 }
             }
