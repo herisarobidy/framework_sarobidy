@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.Map;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import mg.framework.annotations.RequestParam;
 import mg.framework.model.ModelView;
 
@@ -87,10 +90,14 @@ public class FrontServlet extends HttpServlet {
                                                         args[i] = convertValue(value, params[i].getType());
                                                     } else if (params[i].getType().isPrimitive()) {
                                                         args[i] = getDefaultValue(params[i].getType());
+                                                    } else if (isMapStringObject(params[i])) {
+                                                        args[i] = request.getParameterMap();
                                                     }
                                                 }
                                             } else if (params[i].getType().isPrimitive()) {
                                                 args[i] = getDefaultValue(params[i].getType());
+                                            } else if (isMapStringObject(params[i])) {
+                                                args[i] = request.getParameterMap();
                                             }
                                         }
                                     }
@@ -109,6 +116,8 @@ public class FrontServlet extends HttpServlet {
                                     args[i] = convertValue(value, params[i].getType());
                                 } else if (params[i].getType().isPrimitive()) {
                                     args[i] = getDefaultValue(params[i].getType());
+                                } else if (isMapStringObject(params[i])) {
+                                    args[i] = request.getParameterMap();
                                 }
                             }
                         }
@@ -200,5 +209,17 @@ public class FrontServlet extends HttpServlet {
             return (short) 0;
         }
         return null;
+    }
+
+    private boolean isMapStringObject(java.lang.reflect.Parameter parameter) {
+        Type type = parameter.getParameterizedType();
+        if (type instanceof ParameterizedType) {
+            ParameterizedType pt = (ParameterizedType) type;
+            if (pt.getRawType().equals(Map.class)) {
+                Type[] args = pt.getActualTypeArguments();
+                return args.length == 2 && args[0].equals(String.class) && args[1].equals(Object.class);
+            }
+        }
+        return false;
     }
 }
