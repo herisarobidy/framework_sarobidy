@@ -2,6 +2,8 @@ package mg.framework.scan;
 
 import mg.framework.annotations.Controlleur;
 import mg.framework.annotations.HandleURL;
+import mg.framework.annotations.GetMapping;
+import mg.framework.annotations.PostMapping;
 import mg.framework.registry.HandlerMethod;
 import mg.framework.registry.ControllerRegistry;
 
@@ -61,7 +63,17 @@ public class ClasspathScanner {
                     if (m.isAnnotationPresent(HandleURL.class)) {
                         HandleURL h = m.getAnnotation(HandleURL.class);
                         String path = h.value();
-                        HandlerMethod handler = new HandlerMethod(ctrl, m, path);
+                        HandlerMethod handler = new HandlerMethod(ctrl, m, path, "ALL");
+                        registry.register(handler);
+                    } else if (m.isAnnotationPresent(GetMapping.class)) {
+                        GetMapping g = m.getAnnotation(GetMapping.class);
+                        String path = g.value();
+                        HandlerMethod handler = new HandlerMethod(ctrl, m, path, "GET");
+                        registry.register(handler);
+                    } else if (m.isAnnotationPresent(PostMapping.class)) {
+                        PostMapping p = m.getAnnotation(PostMapping.class);
+                        String path = p.value();
+                        HandlerMethod handler = new HandlerMethod(ctrl, m, path, "POST");
                         registry.register(handler);
                     }
                 }
